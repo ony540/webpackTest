@@ -10,6 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin'); //HTML 파일을 번�
 
 const {CleanWebpackPlugin} = require('clean-webpack-plugin'); //없어진파일 삭제하는 모듈
 
+//npm install image-minimizer-webpack-plugin imagemin --save-dev
+const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin'); //이미지최적화 라이브러리
+
 module.exports = {
     // mode: "development",
     // mode: "production", //이거에 따라서 env api key를 바꿀 수 있다
@@ -43,6 +46,7 @@ module.exports = {
                 test: /\.(png|jpg|gif|svg)$/,
                 type: "asset",
                 parser: {
+                    //이미지 용량 제한줘서 다른방식으로 저장하도록
                     dataUrlCondition: {
                         maxSize: 20 * 1024, // 1kb가 1024byte 이기 때문에 20kb를 원한다면 1024에 20을 곱합니다.
                     },
@@ -70,5 +74,32 @@ module.exports = {
         }),
         new CleanWebpackPlugin()
     ],
+    optimization: {
+        // 웹펙의 최적화 활성화 옵션입니다
+        minimize: true,
+        minimizer: [
+            new ImageMinimizerPlugin({
+                //정규표현식 ?붙이면 그앞에 문자가 있어도되고 없어도되고
+                test: /\.(png|jpe?g|gif|svg)$/,
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.imageminMinify,
+                    options: {
+                        plugins: [
+                            //1만해도괜찮은 정도
+                            ["imagemin-optipng", { optimizationLevel: 1 }]
+                        ]
+                    }
+                }
+            }),
+        ]
+    }
     
 };
+
+/*
+비손실 최적화 방법
+npm install imagemin-gifsicle imagemin-jpegtran imagemin-optipng imagemin-svgo --save-dev
+
+손실 최적화 방법 
+npm install imagemin-gifsicle imagemin-mozjpeg imagemin-pngquant imagemin-svgo --save-dev
+*/
